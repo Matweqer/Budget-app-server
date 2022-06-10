@@ -1,6 +1,6 @@
 import app from './app.js';
-import { config } from './config/index.js';
-import { sequelize } from './models/index.js';
+import { config } from './config';
+import { sequelize } from './models';
 
 async function start() {
     await sequelize.authenticate();

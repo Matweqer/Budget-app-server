@@ -1,7 +1,8 @@
 import express from 'express';
 import morgan from 'morgan';
 import cors from 'cors';
-import {budgetRouter} from "./routes";
+import {budgetRouter} from "./routes/index.js";
+import {errorHandler} from './middlewares/index.js'
 
 const app = express();
 
@@ -17,9 +18,9 @@ app.use('/api/', budgetRouter);
 
 // health check request
 app.get('/health', (req, res) => {
-    res.json({ ok: true });
+    res.json({ok: true});
 });
 
-// app.use(ErrorHandler);
+app.use(errorHandler);
 
 export default app;

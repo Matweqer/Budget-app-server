@@ -1,71 +1,47 @@
 import {Budget} from "../models"
+import { BadRequest, NotFound } from 'http-errors'
 
-async function addNote({type, category, cost, subscription}) {
-    try {
-        return await Budget.create({
-            type,
-            category,
-            cost,
-            subscription
-        })
-    } catch (err) {
-        console.log('ERROR')
-        console.log(err);
-    }
+
+async function addNote({ type, category, cost, subscription}) {
+
+    if ( !type || !category || !cost ) throw new BadRequest('missing_field')
+    return Budget.create({
+        type,
+        category,
+        cost,
+        subscription
+    })
 }
 
 async function deleteNote({id}) {
-    try {
-        const note = await Budget.findOne({
-            where: {
-                id
-            }
-        })
-        return (!note) ?
-            {msg: 'no_note_in_base'} :
-            await Budget.destroy({
-                where: {
-                    id
-                },
-            })
-    } catch (err) {
-        console.log('ERROR')
-        console.log(err);
-    }
+    if ( !id ) throw new BadRequest('missing_field')
+    const note = await Budget.findOne({
+        where: {
+            id
+        }
+    })
+    if (!note) throw new NotFound('no_note_in_base')
+    return note.destroy()
 }
 
 async function getNotes() {
-    try {
-        const notes = await Budget.findAll()
-        return (notes) ? notes : {msg: 'no_notes_in_base'}
-
-    } catch (err) {
-        console.log('ERROR')
-        console.log(err);
-    }
+    return Budget.findAll()
 }
 
 async function patchNote({id, type, category, cost, subscription}) {
-    try {
-        const note = await Budget.findOne({
-            where: {
-                id
-            }
-        })
-        if (!note)
-            return {msg: 'no_note_in_base'}
-        else {
-            return await note.update({
-                type,
-                category,
-                cost,
-                subscription
-            })
+    if ( !id || !type || !category || !cost ) throw new BadRequest('missing_field')
+    const note = await Budget.findOne({
+        where: {
+            id
         }
-    } catch (err) {
-        console.log('ERROR')
-        console.log(err);
-    }
+    })
+    if (!note) throw new NotFound('no_note_in_base')
+    return await note.update({
+        type,
+        category,
+        cost,
+        subscription
+    })
 }
 
 async function getStats() {
@@ -88,10 +64,34 @@ async function getStats() {
     }
 }
 
+async function getByProp(property) {
+    const notes = await Budget.findAll({
+        where: {
+            ...property
+        }
+    })
+    if (!notes) throw new NotFound('no_notes_in_base')
+    return (notes)
+}
+
+async function getSortedByField({field, increasing}) {
+    const notes = await Budget.findAll()
+    if (!notes) throw new NotFound('no_notes_in_base')
+    if (!increasing) {
+        notes.sort((a, b) => a[field] > b[field] ? 1 : -1)
+    } else {
+        notes.sort((a, b) => a[field] < b[field] ? 1 : -1)
+    }
+    return notes
+}
+
+
 export {
     addNote,
     deleteNote,
     getNotes,
     patchNote,
-    getStats
+    getStats,
+    getByProp,
+    getSortedByField
 };
